@@ -17,6 +17,27 @@ h1 {
     color: #FFF;
 }
 
+#webcam-wrap {
+    position: relative;
+    width: 600px;
+}
+
+#webcam {
+    width: 600px;
+    transform: scaleX(-1);
+    border: 3px solid #000;
+    display: block;
+}
+
+#landmark-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transform: scaleX(-1);
+}
+
 #doodle-canvas {
     display: block;
     border: 3px solid #000000;
