@@ -1,0 +1,53 @@
+* {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+body {
+    background: #3c3c3c;
+    font-family: monospace;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+h1 {
+    color: #FFF;
+}
+
+#doodle-canvas {
+    display: block;
+    border: 3px solid #000000;
+    background-color: #FFF;
+}
+
+#controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+}
+
+.knob {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 3px solid #000000;
+    background-color: #FFF;
+    position: relative;
+    cursor: grab;
+    user-select: none;
+}
+
+.knob::after {
+    content: '';
+    position: absolute;
+    width: 3px;
+    height: 20px;
+    background: #333;
+    left: 50%;
+    transform: translateX(-50%);
+}

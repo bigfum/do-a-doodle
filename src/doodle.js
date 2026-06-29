@@ -25,19 +25,36 @@ function drawTo(newX, newY) {
 
 function clearCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    cursorX = canvas.width / 2;
-    cursorY = canvas.height / 2;
-    knobX.value = cursorX;
-    knobY.value = cursorY;
 }
 
-knobX.addEventListener('input', () => {
-    const newX = Number(knobX.value);
+function makeKnob(el, onChange) {
+    let startY, startVal, value = 0.5;
+
+    el.addEventListener('mousedown', e => {
+        startY = e.clientY;
+        startVal = value;
+        window.addEventListener('mousemove', onDrag);
+        window.addEventListener('mouseup', () => window.removeEventListener('mousemove', onDrag));
+    });
+
+    function onDrag(e) {
+        const delta = (startY - e.clientY) / 150;
+        value = Math.max(0, Math.min(1, startVal + delta));
+        el.style.transform = `rotate(${value * 270 - 135}deg)`;
+        onChange(value);
+    }
+}
+
+const knobXEl = document.getElementById('knob-x');
+const knobYEl = document.getElementById('knob-y');
+
+makeKnob(knobXEl, v => {
+    const newX = v * canvas.width;
     drawTo(newX, cursorY);
 });
 
-knobY.addEventListener('input', () => {
-    const newY = Number(knobY.value);
+makeKnob(knobYEl, v => {
+    const newY = v * canvas.height;
     drawTo(cursorX, newY);
 });
 
