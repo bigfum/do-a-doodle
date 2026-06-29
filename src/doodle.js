@@ -1,3 +1,5 @@
+import * as THREE from 'three/webgpu';
+
 const canvas = document.getElementById('doodle-canvas');
 const knobX = document.getElementById('knob-x');
 const knobY = document.getElementById('knob-y');

@@ -1,0 +1,24 @@
+{
+  "name": "do-a-doodle",
+  "version": "1.0.0",
+  "description": "like the popular vintage toy, draw with the help of two knobs that move your stylus horizontally or vertically",
+  "main": "index.js",
+  "scripts": {
+    "dev": "serve ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bigfum/do-a-doodle.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/bigfum/do-a-doodle/issues"
+  },
+  "homepage": "https://github.com/bigfum/do-a-doodle#readme",
+  "dependencies": {
+    "three": "^0.185.0"
+  }
+}
