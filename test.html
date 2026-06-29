@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>do a doodle</title>
+    <link rel="stylesheet" href="./src/style.css" />
+</head>
+
+<body>
+    <div id="app">
+        <h1>do a doodle</h1>
+
+        <canvas id="doodle-canvas" width="600" height="400"></canvas>
+
+        <div id="controls">
+            <label for="knob-x">← →</label>
+            <input type="range" id="knob-x" min="0" max="600" value="300" step="1" />
+
+            <label for="knob-y">↑ ↓</label>
+            <input type="range" id="knob-y" min="0" max="400" value="200" step="1" />
+
+            <button id="clear-buttn">shake to clear</button>
+        </div>
+    </div>
+
+    <script src="./src/doodle.js"></script>
+</body>
+
+</html>
