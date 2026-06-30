@@ -38,10 +38,10 @@ h1 {
     transform: scaleX(-1);
 }
 
-#doodle-canvas {
+#renderer-container {
     display: block;
-    border: 3px solid #000000;
-    background-color: #FFF;
+    width: 600px;
+    height: 400px;
 }
 
 #controls {
