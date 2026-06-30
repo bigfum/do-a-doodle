@@ -1,6 +1,9 @@
 import * as THREE from 'three/webgpu';
 
-const canvas = document.getElementById('doodle-canvas');
+const canvas = document.createElement('canvas');
+canvas.width = 600;
+canvas.height = 400;
+
 const knobX = document.getElementById('knob-x');
 const knobY = document.getElementById('knob-y');
 const clearButton = document.getElementById('clear-button');
@@ -247,3 +250,88 @@ function drawDebug(results) {
 }
 
 initMediaPipe();
+
+// three.js WebGPU scene
+
+const container = document.getElementById('renderer-container');
+
+const renderer = new THREE.WebGPURenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setSize(container.clientWidth, container.clientHeight);
+container.appendChild(renderer.domElement);
+
+const camera = new THREE.OrthographicCamera(
+    -container.clientWidth / 2,
+    container.clientWidth / 2,
+    container.clientHeight / 2,
+    -container.clientHeight / 2,
+    0.1, 100
+);
+camera.position.z = 10;
+
+const scene = new THREE.Scene();
+
+const resizeObserver = new ResizeObserver(entries => {
+    const { width, height } = entries[0].contentRect;
+    renderer.setSize(width, height);
+    camera.left = -width / 2;
+    camera.right = width / 2;
+    camera.top = height / 2;
+    camera.bottom = -height / 2;
+    camera.updateProjectionMatrix();
+});
+resizeObserver.observe(container);
+
+// lighting
+
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+scene.add(ambientLight);
+
+const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+dirLight.position.set(5, 10, 10);
+scene.add(dirLight);
+
+// nine-slice frame
+
+const FRAME = 20;
+const W = canvas.width;
+const H = canvas.height;
+const innerW = W - 2 * FRAME;
+const innerH = H - 2 * FRAME;
+const cx = W / 2 - FRAME / 2;
+const cy = H / 2 - FRAME / 2;
+
+const cornerMat = new THREE.MeshStandardMaterial({ color: 0x2255ff });
+const edgeMat = new THREE.MeshStandardMaterial({ color: 0xff3322 });
+
+function addBox(w, h, mat, x, y, z = 0) {
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, FRAME), mat);
+    mesh.position.set(x, y, z);
+    scene.add(mesh);
+    return mesh;
+}
+
+addBox(FRAME, FRAME, cornerMat, -cx, cy);
+addBox(FRAME, FRAME, cornerMat, cx, cy);
+addBox(FRAME, FRAME, cornerMat, -cx, -cy);
+addBox(FRAME, FRAME, cornerMat, cx, -cy);
+
+addBox(innerW, FRAME, edgeMat, 0, cy);
+addBox(innerW, FRAME, edgeMat, 0, -cy);
+addBox(FRAME, innerH, edgeMat, -cx, 0);
+addBox(FRAME, innerH, edgeMat, cx, 0);
+
+// plane with live canvas texture
+
+const canvasTexture = new THREE.CanvasTexture(canvas);
+const planeMat = new THREE.MeshStandardMaterial({ map: canvasTexture });
+const plane = new THREE.Mesh(new THREE.PlaneGeometry(innerW, innerH), planeMat);
+plane.position.z = -1;
+scene.add(plane);
+
+// render loop
+
+renderer.setAnimationLoop(() => {
+    canvasTexture.needsUpdate = true;
+    renderer.render(scene, camera);
+});
