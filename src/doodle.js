@@ -253,85 +253,89 @@ initMediaPipe();
 
 // three.js WebGPU scene
 
-const container = document.getElementById('renderer-container');
+(async () => {
+    const container = document.getElementById('renderer-container');
 
-const renderer = new THREE.WebGPURenderer({ antialias: true });
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setSize(container.clientWidth, container.clientHeight);
-container.appendChild(renderer.domElement);
+    const renderer = new THREE.WebGPURenderer({ antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    container.appendChild(renderer.domElement);
 
-const camera = new THREE.OrthographicCamera(
-    -container.clientWidth / 2,
-    container.clientWidth / 2,
-    container.clientHeight / 2,
-    -container.clientHeight / 2,
-    0.1, 100
-);
-camera.position.z = 10;
+    await renderer.init();
 
-const scene = new THREE.Scene();
+    const camera = new THREE.OrthographicCamera(
+        -container.clientWidth / 2,
+         container.clientWidth / 2,
+         container.clientHeight / 2,
+        -container.clientHeight / 2,
+        0.1, 100
+    );
+    camera.position.z = 10;
 
-const resizeObserver = new ResizeObserver(entries => {
-    const { width, height } = entries[0].contentRect;
-    renderer.setSize(width, height);
-    camera.left = -width / 2;
-    camera.right = width / 2;
-    camera.top = height / 2;
-    camera.bottom = -height / 2;
-    camera.updateProjectionMatrix();
-});
-resizeObserver.observe(container);
+    const scene = new THREE.Scene();
 
-// lighting
+    const resizeObserver = new ResizeObserver(entries => {
+        const { width, height } = entries[0].contentRect;
+        renderer.setSize(width, height);
+        camera.left   = -width  / 2;
+        camera.right  =  width  / 2;
+        camera.top    =  height / 2;
+        camera.bottom = -height / 2;
+        camera.updateProjectionMatrix();
+    });
+    resizeObserver.observe(container);
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-scene.add(ambientLight);
+    // lighting
 
-const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-dirLight.position.set(5, 10, 10);
-scene.add(dirLight);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    scene.add(ambientLight);
 
-// nine-slice frame
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    dirLight.position.set(5, 10, 10);
+    scene.add(dirLight);
 
-const FRAME = 20;
-const W = canvas.width;
-const H = canvas.height;
-const innerW = W - 2 * FRAME;
-const innerH = H - 2 * FRAME;
-const cx = W / 2 - FRAME / 2;
-const cy = H / 2 - FRAME / 2;
+    // nine-slice frame
 
-const cornerMat = new THREE.MeshStandardMaterial({ color: 0x2255ff });
-const edgeMat = new THREE.MeshStandardMaterial({ color: 0xff3322 });
+    const FRAME = 20;
+    const W = canvas.width;
+    const H = canvas.height;
+    const innerW = W - 2 * FRAME;
+    const innerH = H - 2 * FRAME;
+    const cx = W / 2 - FRAME / 2;
+    const cy = H / 2 - FRAME / 2;
 
-function addBox(w, h, mat, x, y, z = 0) {
-    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, FRAME), mat);
-    mesh.position.set(x, y, z);
-    scene.add(mesh);
-    return mesh;
-}
+    const cornerMat = new THREE.MeshStandardMaterial({ color: 0x2255ff });
+    const edgeMat   = new THREE.MeshStandardMaterial({ color: 0xff3322 });
 
-addBox(FRAME, FRAME, cornerMat, -cx, cy);
-addBox(FRAME, FRAME, cornerMat, cx, cy);
-addBox(FRAME, FRAME, cornerMat, -cx, -cy);
-addBox(FRAME, FRAME, cornerMat, cx, -cy);
+    function addBox(w, h, mat, x, y, z = 0) {
+        const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, FRAME), mat);
+        mesh.position.set(x, y, z);
+        scene.add(mesh);
+        return mesh;
+    }
 
-addBox(innerW, FRAME, edgeMat, 0, cy);
-addBox(innerW, FRAME, edgeMat, 0, -cy);
-addBox(FRAME, innerH, edgeMat, -cx, 0);
-addBox(FRAME, innerH, edgeMat, cx, 0);
+    addBox(FRAME, FRAME, cornerMat, -cx,  cy);
+    addBox(FRAME, FRAME, cornerMat,  cx,  cy);
+    addBox(FRAME, FRAME, cornerMat, -cx, -cy);
+    addBox(FRAME, FRAME, cornerMat,  cx, -cy);
 
-// plane with live canvas texture
+    addBox(innerW, FRAME, edgeMat, 0,   cy);
+    addBox(innerW, FRAME, edgeMat, 0,  -cy);
+    addBox(FRAME, innerH, edgeMat, -cx, 0);
+    addBox(FRAME, innerH, edgeMat,  cx, 0);
 
-const canvasTexture = new THREE.CanvasTexture(canvas);
-const planeMat = new THREE.MeshStandardMaterial({ map: canvasTexture });
-const plane = new THREE.Mesh(new THREE.PlaneGeometry(innerW, innerH), planeMat);
-plane.position.z = -1;
-scene.add(plane);
+    // plane with live canvas texture
 
-// render loop
+    const canvasTexture = new THREE.CanvasTexture(canvas);
+    const planeMat = new THREE.MeshStandardMaterial({ map: canvasTexture });
+    const plane = new THREE.Mesh(new THREE.PlaneGeometry(innerW, innerH), planeMat);
+    plane.position.z = -1;
+    scene.add(plane);
 
-renderer.setAnimationLoop(() => {
-    canvasTexture.needsUpdate = true;
-    renderer.render(scene, camera);
-});
+    // render loop
+
+    renderer.setAnimationLoop(() => {
+        canvasTexture.needsUpdate = true;
+        renderer.render(scene, camera);
+    });
+})();
