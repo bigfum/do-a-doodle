@@ -13,6 +13,9 @@ const ctx = canvas.getContext('2d');
 let cursorX = canvas.width / 2;
 let cursorY = canvas.height / 2;
 
+ctx.fillStyle = '#fff';
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+
 ctx.strokeStyle = '#000';
 ctx.lineWidth = 2;
 ctx.lineCap = 'round';
@@ -35,7 +38,8 @@ function drawTo(newX, newY) {
 }
 
 function clearCanvas() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 function makeKnob(el, onChange) {
@@ -256,31 +260,27 @@ initMediaPipe();
 (async () => {
     const container = document.getElementById('renderer-container');
 
+    const W = canvas.width;
+    const H = canvas.height;
+
     const renderer = new THREE.WebGPURenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setSize(container.clientWidth || W, container.clientHeight || H);
+    renderer.setClearColor(0x3c3c3c);
     container.appendChild(renderer.domElement);
 
     await renderer.init();
 
-    const camera = new THREE.OrthographicCamera(
-        -container.clientWidth / 2,
-         container.clientWidth / 2,
-         container.clientHeight / 2,
-        -container.clientHeight / 2,
-        0.1, 100
-    );
-    camera.position.z = 10;
+    const fov = 50;
+    const camera = new THREE.PerspectiveCamera(fov, W / H, 0.1, 2000);
+    camera.position.z = (H / 2) / Math.tan((fov / 2) * Math.PI / 180) + 25;
 
     const scene = new THREE.Scene();
 
     const resizeObserver = new ResizeObserver(entries => {
         const { width, height } = entries[0].contentRect;
         renderer.setSize(width, height);
-        camera.left   = -width  / 2;
-        camera.right  =  width  / 2;
-        camera.top    =  height / 2;
-        camera.bottom = -height / 2;
+        camera.aspect = width / height;
         camera.updateProjectionMatrix();
     });
     resizeObserver.observe(container);
@@ -297,15 +297,13 @@ initMediaPipe();
     // nine-slice frame
 
     const FRAME = 20;
-    const W = canvas.width;
-    const H = canvas.height;
     const innerW = W - 2 * FRAME;
     const innerH = H - 2 * FRAME;
     const cx = W / 2 - FRAME / 2;
     const cy = H / 2 - FRAME / 2;
 
     const cornerMat = new THREE.MeshStandardMaterial({ color: 0x2255ff });
-    const edgeMat   = new THREE.MeshStandardMaterial({ color: 0xff3322 });
+    const edgeMat = new THREE.MeshStandardMaterial({ color: 0xff3322 });
 
     function addBox(w, h, mat, x, y, z = 0) {
         const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, FRAME), mat);
@@ -314,19 +312,20 @@ initMediaPipe();
         return mesh;
     }
 
-    addBox(FRAME, FRAME, cornerMat, -cx,  cy);
-    addBox(FRAME, FRAME, cornerMat,  cx,  cy);
+    addBox(FRAME, FRAME, cornerMat, -cx, cy);
+    addBox(FRAME, FRAME, cornerMat, cx, cy);
     addBox(FRAME, FRAME, cornerMat, -cx, -cy);
-    addBox(FRAME, FRAME, cornerMat,  cx, -cy);
+    addBox(FRAME, FRAME, cornerMat, cx, -cy);
 
-    addBox(innerW, FRAME, edgeMat, 0,   cy);
-    addBox(innerW, FRAME, edgeMat, 0,  -cy);
+    addBox(innerW, FRAME, edgeMat, 0, cy);
+    addBox(innerW, FRAME, edgeMat, 0, -cy);
     addBox(FRAME, innerH, edgeMat, -cx, 0);
-    addBox(FRAME, innerH, edgeMat,  cx, 0);
+    addBox(FRAME, innerH, edgeMat, cx, 0);
 
     // plane with live canvas texture
 
     const canvasTexture = new THREE.CanvasTexture(canvas);
+    canvasTexture.colorSpace = THREE.SRGBColorSpace;
     const planeMat = new THREE.MeshStandardMaterial({ map: canvasTexture });
     const plane = new THREE.Mesh(new THREE.PlaneGeometry(innerW, innerH), planeMat);
     plane.position.z = -1;
